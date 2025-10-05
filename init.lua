@@ -121,6 +121,8 @@ vim.keymap.set('n', '<leader>bb', '<cmd>e #<cr>', { desc = 'Switch to Other Buff
 vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to Other Buffer' })
 vim.keymap.set('n', '<leader>bD', '<cmd>:bd<cr>', { desc = 'Delete Buffer and Window' })
 vim.keymap.set('n', '<leader>qq', '<cmd>qa<cr>', { desc = 'Quit All' })
+
+vim.keymap.set('n', '<leader>l', ':Lazy<cr>', { desc = 'Lazy' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -167,10 +169,45 @@ require('lazy').setup(
         },
       },
     },
+    {
+      'gbprod/yanky.nvim',
+      opts = {
+        highlight = { timer = 150 },
+      },
+      keys = {
+        {
+          "<leader>p",
+          function()
+            require("telescope").extensions.yank_history.yank_history({})
+          end,
+          mode = { "n", "x" },
+          desc = "Open Yank History",
+        },
+            -- stylua: ignore
+        { "y", "<Plug>(YankyYank)", mode = { "n", "x" }, desc = "Yank Text" },
+        { "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" }, desc = "Put Text After Cursor" },
+        { "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" }, desc = "Put Text Before Cursor" },
+        { "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" }, desc = "Put Text After Selection" },
+        { "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" }, desc = "Put Text Before Selection" },
+        { "[y", "<Plug>(YankyCycleForward)", desc = "Cycle Forward Through Yank History" },
+        { "]y", "<Plug>(YankyCycleBackward)", desc = "Cycle Backward Through Yank History" },
+        { "]p", "<Plug>(YankyPutIndentAfterLinewise)", desc = "Put Indented After Cursor (Linewise)" },
+        { "[p", "<Plug>(YankyPutIndentBeforeLinewise)", desc = "Put Indented Before Cursor (Linewise)" },
+        { "]P", "<Plug>(YankyPutIndentAfterLinewise)", desc = "Put Indented After Cursor (Linewise)" },
+        { "[P", "<Plug>(YankyPutIndentBeforeLinewise)", desc = "Put Indented Before Cursor (Linewise)" },
+        { ">p", "<Plug>(YankyPutIndentAfterShiftRight)", desc = "Put and Indent Right" },
+        { "<p", "<Plug>(YankyPutIndentAfterShiftLeft)", desc = "Put and Indent Left" },
+        { ">P", "<Plug>(YankyPutIndentBeforeShiftRight)", desc = "Put Before and Indent Right" },
+        { "<P", "<Plug>(YankyPutIndentBeforeShiftLeft)", desc = "Put Before and Indent Left" },
+        { "=p", "<Plug>(YankyPutAfterFilter)", desc = "Put After Applying a Filter" },
+        { "=P", "<Plug>(YankyPutBeforeFilter)", desc = "Put Before Applying a Filter" },
+      },
+    },
     { -- Useful plugin to show you pending keybinds.
       'folke/which-key.nvim',
       event = 'VimEnter', -- Sets the loading event to 'VimEnter'
       opts = {
+        preset = "helix",
         -- delay between pressing a key and opening which-key (milliseconds)
         -- this setting is independent of vim.o.timeoutlen
         delay = 0,
@@ -314,9 +351,8 @@ require('lazy').setup(
       },
     },
     { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-
     {
-      'echasnovski/mini.nvim',
+      'nvim-mini/mini.nvim',
       config = function()
         -- Better Around/Inside textobjects
         --
@@ -332,6 +368,7 @@ require('lazy').setup(
         -- - sd'   - [S]urround [D]elete [']quotes
         -- - sr)'  - [S]urround [R]eplace [)] [']
         require('mini.surround').setup()
+        require('mini.move').setup()
 
         -- Simple and easy statusline.
         --  You could remove this setup call if you don't like it,
@@ -353,7 +390,7 @@ require('lazy').setup(
       end,
     },
     {
-      'echasnovski/mini.surround',
+      'nvim-mini/mini.surround',
       opts = {
         mappings = {
           add = 'gsa', -- Add surrounding in Normal and Visual modes
@@ -380,6 +417,18 @@ require('lazy').setup(
           additional_vim_regex_highlighting = { 'ruby' },
         },
         indent = { enable = true, disable = { 'ruby' } },
+      },
+    },
+    {
+      "folke/persistence.nvim",
+      event = "BufReadPre",
+      opts = {},
+      -- stylua: ignore
+      keys = {
+        { "<leader>qs", function() require("persistence").load() end, desc = "Restore Session" },
+        { "<leader>qS", function() require("persistence").select() end,desc = "Select Session" },
+        { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Restore Last Session" },
+        { "<leader>qd", function() require("persistence").stop() end, desc = "Don't Save Current Session" },
       },
     },
     {
@@ -440,7 +489,42 @@ require('lazy').setup(
         -- or leave it empty to use the default settings
         -- refer to the configuration section below
         bigfile = { enabled = true },
-        dashboard = { enabled = true },
+        dashboard = { 
+          preset = {
+            pick = function(cmd, opts)
+              return LazyVim.pick(cmd, opts)()
+            end,
+            header = [[
+                                        ___                __      __      
+                __                     /\_ \    __        /\ \    /\ \__   
+  ___   __  __ /\_\    ___ ___         \//\ \  /\_\     __\ \ \___\ \ ,_\  
+/' _ `\/\ \/\ \\/\ \ /' __` __`\  _______\ \ \ \/\ \  /'_ `\ \  _ `\ \ \/  
+/\ \/\ \ \ \_/ |\ \ \/\ \/\ \/\ \/\______\\_\ \_\ \ \/\ \L\ \ \ \ \ \ \ \_ 
+\ \_\ \_\ \___/  \ \_\ \_\ \_\ \_\/______//\____\\ \_\ \____ \ \_\ \_\ \__\
+ \/_/\/_/\/__/    \/_/\/_/\/_/\/_/        \/____/ \/_/\/___L\ \/_/\/_/\/__/
+                                                        /\____/            
+                                                        \_/__/             
+ ]],
+            sections = {
+              { section = "header" },
+              { section = "keys", gap = 1 },
+              { title = "Recent Files", section = "recent_files", indent = 2, padding = { 2, 2 } },
+              { section = "startup" },
+            },
+            -- stylua: ignore
+            ---@type snacks.dashboard.Item[]
+            keys = {
+              { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
+              { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+              { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+              { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+              { icon = " ", key = "c", desc = "Config", action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+              { icon = " ", key = "s", desc = "Restore Session", section = "session" },
+              { icon = "󰒲 ", key = "l", desc = "Lazy", action = ":Lazy" },
+              { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+            },
+          },
+        },
         explorer = { enabled = true },
         indent = { enabled = true },
         input = { enabled = true },
