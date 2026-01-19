@@ -946,6 +946,21 @@ require('lazy').setup(
           desc = 'Delete Buffer',
         },
         {
+					"<leader>wd",
+					"<C-W>c",
+					desc = "Delete Window Buffer",
+				},
+				{
+					"<leader>-",
+					"<C-W>s",
+					desc = "Split Window Below",
+				},
+				{
+					"<leader>|",
+					"<C-W>v",
+					desc = "Split Window Right",
+				},
+        {
           '<leader>cR',
           function()
             Snacks.rename.rename_file()
