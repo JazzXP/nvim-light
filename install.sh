@@ -1,4 +1,51 @@
 #!/bin/bash
+
+get_nvim_version() {
+	if command -v nvim >/dev/null 2>&1; then
+		nvim --version | head -n 1 | grep -oP 'v\K[0-9]+\.[0-9]+' || echo "0.0"
+	else
+		echo "0.0"
+	fi
+}
+
+get_package_manager_version() {
+	if command -v brew >/dev/null 2>&1; then
+		brew info neovim 2>/dev/null | head -n 1 | grep -oP 'neovim: \K[0-9]+\.[0-9]+' || echo "0.0"
+	elif command -v apt >/dev/null 2>&1; then
+		apt-cache policy neovim 2>/dev/null | grep 'Candidate:' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	elif command -v dnf >/dev/null 2>&1; then
+		dnf info neovim 2>/dev/null | grep 'Version' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	elif command -v yum >/dev/null 2>&1; then
+		yum info neovim 2>/dev/null | grep 'Version' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	elif command -v pacman >/dev/null 2>&1; then
+		pacman -Si neovim 2>/dev/null | grep 'Version' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	elif command -v apk >/dev/null 2>&1; then
+		apk info neovim 2>/dev/null | grep 'neovim-' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	elif command -v zypper >/dev/null 2>&1; then
+		zypper info neovim 2>/dev/null | grep 'Version' | grep -oP '\d+\.\d+' | head -n 1 || echo "0.0"
+	else
+		echo "0.0"
+	fi
+}
+
+version_compare() {
+	local ver1=$1
+	local ver2=$2
+	
+	ver1_major=$(echo "$ver1" | cut -d. -f1)
+	ver1_minor=$(echo "$ver1" | cut -d. -f2)
+	ver2_major=$(echo "$ver2" | cut -d. -f1)
+	ver2_minor=$(echo "$ver2" | cut -d. -f2)
+	
+	if [ "$ver1_major" -lt "$ver2_major" ]; then
+		return 0
+	elif [ "$ver1_major" -eq "$ver2_major" ] && [ "$ver1_minor" -lt "$ver2_minor" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 install_neovim() {
 	if command -v brew >/dev/null 2>&1; then
 		brew install neovim
@@ -20,7 +67,8 @@ install_neovim() {
 	fi
 }
 
-uninstall_neovim() {
+install_from_github() {
+	echo "Installing Neovim from GitHub releases..."
 	if command -v brew >/dev/null 2>&1; then
 		brew uninstall --ignore-dependencies neovim || true
 	elif command -v apk >/dev/null 2>&1; then
@@ -104,13 +152,25 @@ install_treesitter() {
 }
 
 # Main installation
-echo "Installing Neovim..."
-if command -v nvim >/dev/null 2>&1; then
-	echo "Neovim found, upgrading to latest version..."
-	uninstall_neovim
+echo "Checking Neovim installation..."
+CURRENT_VERSION=$(get_nvim_version)
+PACKAGE_VERSION=$(get_package_manager_version)
+REQUIRED_VERSION="0.11"
+
+echo "Current Neovim version: $CURRENT_VERSION"
+echo "Package manager version: $PACKAGE_VERSION"
+echo "Required version: $REQUIRED_VERSION or higher"
+
+if version_compare "$CURRENT_VERSION" "$REQUIRED_VERSION"; then
+	if version_compare "$PACKAGE_VERSION" "$REQUIRED_VERSION"; then
+		echo "Package manager version is less than $REQUIRED_VERSION, installing from GitHub..."
+		install_from_github
+	else
+		echo "Package manager has version $PACKAGE_VERSION (>= $REQUIRED_VERSION), installing from package manager..."
+		install_neovim
+	fi
 else
-	echo "Installing Neovim from latest release..."
-	uninstall_neovim
+	echo "Neovim version $CURRENT_VERSION meets requirements (>= $REQUIRED_VERSION)"
 fi
 
 echo "Installing tree-sitter CLI..."
