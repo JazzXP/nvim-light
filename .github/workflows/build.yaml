@@ -20,6 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set lowercase owner
+        id: owner
+        run: echo "OWNER=\$(echo \"\$GITHUB\_REPOSITORY\_OWNER\" | tr '[:upper:]' '[:lower:]')" >> \$GITHUB\_ENV
+
       # Required to emulate arm64 on the x86 github runner
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -41,6 +45,6 @@ jobs:
           # This builds for BOTH architectures and merges them
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ toLower(github.repository_owner) }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE_NAME }}:latest
           # no-cache ensures we don't reuse old, architecture-mismatched parsers
           no-cache: true
