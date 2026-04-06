@@ -22,7 +22,7 @@ jobs:
 
       - name: Set lowercase owner
         id: owner
-        run: echo "OWNER=\$(echo \"\$GITHUB\_REPOSITORY\_OWNER\" | tr '[:upper:]' '[:lower:]')" >> \$GITHUB\_ENV
+        run: echo "OWNER=\$(echo \"\${{ github.repository\_owner }}\" | tr '[:upper:]' '[:lower:]')" >> \$GITHUB\_ENV
 
       # Required to emulate arm64 on the x86 github runner
       - name: Set up QEMU
