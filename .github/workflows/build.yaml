@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: nvim-light
+  IMAGE_NAME: jazzxp/nvim-light
 
 jobs:
   build-and-push:
@@ -41,6 +41,6 @@ jobs:
           # This builds for BOTH architectures and merges them
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner.toLowerCase() }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           # no-cache ensures we don't reuse old, architecture-mismatched parsers
           no-cache: true
