@@ -176,38 +176,38 @@ require('lazy').setup(
       },
       keys = {
         {
-          "<leader>p",
+          '<leader>p',
           function()
-            require("telescope").extensions.yank_history.yank_history({})
+            require('telescope').extensions.yank_history.yank_history {}
           end,
-          mode = { "n", "x" },
-          desc = "Open Yank History",
+          mode = { 'n', 'x' },
+          desc = 'Open Yank History',
         },
             -- stylua: ignore
         { "y", "<Plug>(YankyYank)", mode = { "n", "x" }, desc = "Yank Text" },
-        { "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" }, desc = "Put Text After Cursor" },
-        { "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" }, desc = "Put Text Before Cursor" },
-        { "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" }, desc = "Put Text After Selection" },
-        { "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" }, desc = "Put Text Before Selection" },
-        { "[y", "<Plug>(YankyCycleForward)", desc = "Cycle Forward Through Yank History" },
-        { "]y", "<Plug>(YankyCycleBackward)", desc = "Cycle Backward Through Yank History" },
-        { "]p", "<Plug>(YankyPutIndentAfterLinewise)", desc = "Put Indented After Cursor (Linewise)" },
-        { "[p", "<Plug>(YankyPutIndentBeforeLinewise)", desc = "Put Indented Before Cursor (Linewise)" },
-        { "]P", "<Plug>(YankyPutIndentAfterLinewise)", desc = "Put Indented After Cursor (Linewise)" },
-        { "[P", "<Plug>(YankyPutIndentBeforeLinewise)", desc = "Put Indented Before Cursor (Linewise)" },
-        { ">p", "<Plug>(YankyPutIndentAfterShiftRight)", desc = "Put and Indent Right" },
-        { "<p", "<Plug>(YankyPutIndentAfterShiftLeft)", desc = "Put and Indent Left" },
-        { ">P", "<Plug>(YankyPutIndentBeforeShiftRight)", desc = "Put Before and Indent Right" },
-        { "<P", "<Plug>(YankyPutIndentBeforeShiftLeft)", desc = "Put Before and Indent Left" },
-        { "=p", "<Plug>(YankyPutAfterFilter)", desc = "Put After Applying a Filter" },
-        { "=P", "<Plug>(YankyPutBeforeFilter)", desc = "Put Before Applying a Filter" },
+        { 'p', '<Plug>(YankyPutAfter)', mode = { 'n', 'x' }, desc = 'Put Text After Cursor' },
+        { 'P', '<Plug>(YankyPutBefore)', mode = { 'n', 'x' }, desc = 'Put Text Before Cursor' },
+        { 'gp', '<Plug>(YankyGPutAfter)', mode = { 'n', 'x' }, desc = 'Put Text After Selection' },
+        { 'gP', '<Plug>(YankyGPutBefore)', mode = { 'n', 'x' }, desc = 'Put Text Before Selection' },
+        { '[y', '<Plug>(YankyCycleForward)', desc = 'Cycle Forward Through Yank History' },
+        { ']y', '<Plug>(YankyCycleBackward)', desc = 'Cycle Backward Through Yank History' },
+        { ']p', '<Plug>(YankyPutIndentAfterLinewise)', desc = 'Put Indented After Cursor (Linewise)' },
+        { '[p', '<Plug>(YankyPutIndentBeforeLinewise)', desc = 'Put Indented Before Cursor (Linewise)' },
+        { ']P', '<Plug>(YankyPutIndentAfterLinewise)', desc = 'Put Indented After Cursor (Linewise)' },
+        { '[P', '<Plug>(YankyPutIndentBeforeLinewise)', desc = 'Put Indented Before Cursor (Linewise)' },
+        { '>p', '<Plug>(YankyPutIndentAfterShiftRight)', desc = 'Put and Indent Right' },
+        { '<p', '<Plug>(YankyPutIndentAfterShiftLeft)', desc = 'Put and Indent Left' },
+        { '>P', '<Plug>(YankyPutIndentBeforeShiftRight)', desc = 'Put Before and Indent Right' },
+        { '<P', '<Plug>(YankyPutIndentBeforeShiftLeft)', desc = 'Put Before and Indent Left' },
+        { '=p', '<Plug>(YankyPutAfterFilter)', desc = 'Put After Applying a Filter' },
+        { '=P', '<Plug>(YankyPutBeforeFilter)', desc = 'Put Before Applying a Filter' },
       },
     },
     { -- Useful plugin to show you pending keybinds.
       'folke/which-key.nvim',
       event = 'VimEnter', -- Sets the loading event to 'VimEnter'
       opts = {
-        preset = "helix",
+        preset = 'helix',
         -- delay between pressing a key and opening which-key (milliseconds)
         -- this setting is independent of vim.o.timeoutlen
         delay = 0,
@@ -406,22 +406,23 @@ require('lazy').setup(
     { -- Highlight, edit, and navigate code
       'nvim-treesitter/nvim-treesitter',
       build = ':TSUpdate',
-      main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-      opts = {
-        ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-        -- Autoinstall languages that are not installed
-        auto_install = true,
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = { 'ruby' },
-        },
-        indent = { enable = true, disable = { 'ruby' } },
-      },
+      -- REMOVE: main = 'nvim-treesitter.configs',
+      config = function()
+        local status_ok, configs = pcall(require, 'nvim-treesitter.configs')
+        if not status_ok then
+          return
+        end
+        configs.setup {
+          ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+          auto_install = false, -- Disable for Docker to prevent 'range' nil errors
+          highlight = { enable = true },
+          indent = { enable = true },
+        }
+      end,
     },
     {
-      "folke/persistence.nvim",
-      event = "BufReadPre",
+      'folke/persistence.nvim',
+      event = 'BufReadPre',
       opts = {},
       -- stylua: ignore
       keys = {
@@ -489,7 +490,7 @@ require('lazy').setup(
         -- or leave it empty to use the default settings
         -- refer to the configuration section below
         bigfile = { enabled = true },
-        dashboard = { 
+        dashboard = {
           preset = {
             pick = function(cmd, opts)
               return LazyVim.pick(cmd, opts)()
@@ -506,10 +507,10 @@ require('lazy').setup(
                                                         \_/__/             
  ]],
             sections = {
-              { section = "header" },
-              { section = "keys", gap = 1 },
-              { title = "Recent Files", section = "recent_files", indent = 2, padding = { 2, 2 } },
-              { section = "startup" },
+              { section = 'header' },
+              { section = 'keys', gap = 1 },
+              { title = 'Recent Files', section = 'recent_files', indent = 2, padding = { 2, 2 } },
+              { section = 'startup' },
             },
             -- stylua: ignore
             ---@type snacks.dashboard.Item[]
