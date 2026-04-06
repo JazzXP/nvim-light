@@ -21,8 +21,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set lowercase owner
-        id: owner
-        run: echo "OWNER=\$(echo \"\${{ github.repository\_owner }}\" | tr '[:upper:]' '[:lower:]')" >> \$GITHUB\_ENV
+        env:
+          GH_OWNER: ${{ github.repository_owner }}
+        run: echo "OWNER=\$(echo \"\$GH_OWNER\" | tr '[:upper:]' '[:lower:]')" >> \$GITHUB_ENV
 
       # Required to emulate arm64 on the x86 github runner
       - name: Set up QEMU
