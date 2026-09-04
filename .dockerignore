@@ -1,5 +1,4 @@
 .git
 .github
-lazy-lock.json
 Dockerfile
-Dockerfile.old
+nvim.log

@@ -1,3 +1,13 @@
-kickstart-is	kickstart.txt	/*kickstart-is*
-kickstart-is-not	kickstart.txt	/*kickstart-is-not*
-kickstart.nvim	kickstart.txt	/*kickstart.nvim*
+nvim-light	nvim-light.txt	/*nvim-light*
+nvim-light-adding-plugins	nvim-light.txt	/*nvim-light-adding-plugins*
+nvim-light-docker	nvim-light.txt	/*nvim-light-docker*
+nvim-light-introduction	nvim-light.txt	/*nvim-light-introduction*
+nvim-light-is	nvim-light.txt	/*nvim-light-is*
+nvim-light-is-not	nvim-light.txt	/*nvim-light-is-not*
+nvim-light-keymaps	nvim-light.txt	/*nvim-light-keymaps*
+nvim-light-lockfile	nvim-light.txt	/*nvim-light-lockfile*
+nvim-light-plugins	nvim-light.txt	/*nvim-light-plugins*
+nvim-light-requirements	nvim-light.txt	/*nvim-light-requirements*
+nvim-light-treesitter	nvim-light.txt	/*nvim-light-treesitter*
+nvim-light-updating	nvim-light.txt	/*nvim-light-updating*
+nvim-light.txt	nvim-light.txt	/*nvim-light.txt*

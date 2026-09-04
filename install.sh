@@ -155,7 +155,7 @@ install_treesitter() {
 echo "Checking Neovim installation..."
 CURRENT_VERSION=$(get_nvim_version)
 PACKAGE_VERSION=$(get_package_manager_version)
-REQUIRED_VERSION="0.11"
+REQUIRED_VERSION="0.12"
 
 echo "Current Neovim version: $CURRENT_VERSION"
 echo "Package manager version: $PACKAGE_VERSION"

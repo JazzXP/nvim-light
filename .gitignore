@@ -4,6 +4,6 @@ test.sh
 nvim
 
 spell/
-lazy-lock.json
 cache/
 local/
+nvim.log

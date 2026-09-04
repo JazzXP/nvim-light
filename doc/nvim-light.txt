@@ -1,0 +1,236 @@
+*nvim-light.txt*             A lightweight Neovim config for working on servers
+
+==============================================================================
+CONTENTS                                                          *nvim-light*
+
+    1. Introduction ........................... |nvim-light-introduction|
+    2. Requirements ........................... |nvim-light-requirements|
+    3. Managing plugins ....................... |nvim-light-plugins|
+    4. Treesitter ............................. |nvim-light-treesitter|
+    5. Keymaps ................................ |nvim-light-keymaps|
+    6. Adding a plugin ........................ |nvim-light-adding-plugins|
+    7. Docker ................................. |nvim-light-docker|
+
+==============================================================================
+1. INTRODUCTION                                      *nvim-light-introduction*
+
+nvim-light is a small Neovim config for editing files on servers and inside
+containers. It started as a fork of kickstart.nvim, but has diverged: the whole
+config is a single 'init.lua', plugins are managed by Neovim's built-in
+|vim.pack| instead of lazy.nvim, and there is no language tooling.
+
+                                                          *nvim-light-is-not*
+It is not:
+- An IDE. There is deliberately no LSP, no linting, no formatting, and no AI
+  integration. Neovim's default LSP mappings (|lsp-defaults|) are deleted in
+  'init.lua', since without a language server they only fail with "no client":
+  `grn`, `grr`, `gri`, `grt`, `grx`, `gra`, and `<C-s>` in insert mode. This
+  leaves the builtin `gr` |gr| available again, which those mappings shadowed.
+  `gO` is kept on purpose, because the |vim.pack| update buffer and help files
+  use it for their outline.
+- A framework. There is no plugin spec layer, no module loader, and no
+  `lua/plugins/` directory to scan.
+
+                                                              *nvim-light-is*
+It is:
+- A file picker, a grep, a git browser, buffer/session management, treesitter
+  highlighting, and enough quality-of-life plugins to feel comfortable.
+- One file you can read top to bottom.
+
+==============================================================================
+2. REQUIREMENTS                                      *nvim-light-requirements*
+
+- Neovim 0.12.0 or later. |vim.pack| does not exist before 0.12.
+- `git`, used by |vim.pack| to clone and update plugins.
+- `tree-sitter` (the CLI, 0.26.1 or later) and a C compiler. nvim-treesitter's
+  `main` branch builds every parser locally and cannot install a single one
+  without them. See |nvim-light-treesitter|.
+- `rg` (ripgrep) for grep pickers, and optionally `fd`, `fzf`, and `lazygit`.
+
+Run `:checkhealth nvim-light` to check all of the above at once, or use the
+bundled `install.sh`, which installs Neovim and the tree-sitter CLI for your
+package manager and sets up an `nvim-light` shell alias.
+
+==============================================================================
+3. MANAGING PLUGINS                                      *nvim-light-plugins*
+
+Plugins are declared in a single |vim.pack.add()| call in 'init.lua' and are
+installed on the first start after they are added. There is no lazy-loading
+layer: every plugin is on the 'runtimepath' from the start, and each one's
+`setup()` call and keymaps live further down the same file.
+
+Plugins are cloned into `site/pack/core/opt` under |stdpath()| "data".
+
+Updating ~
+                                                        *nvim-light-updating*
+`<leader>l` runs |vim.pack.update()|. That downloads new commits and opens a
+confirmation buffer in a new tabpage listing what would change. Nothing has
+been applied at that point.
+
+    `:w`        apply the pending updates
+    `:q`        discard them
+    `]]` `[[`   jump to the next/previous plugin
+    `K`         details of the change under the cursor
+    `gO`        outline of the buffer
+    `gra`       code actions for the plugin at the cursor: update, skip
+                updating, or delete
+
+Lines starting with `>` will be applied; lines starting with `<` will be
+reverted. Run `:restart` afterwards to load the new code.
+
+`<leader>L` runs the same review buffer with `offline = true`, which skips the
+download and just shows what is currently installed.
+
+The lockfile ~
+                                                        *nvim-light-lockfile*
+|vim.pack| records the exact revision of every plugin in `nvim-pack-lock.json`
+next to 'init.lua'. Keep it in version control: it is what pins revisions for
+the Docker image and other machines, and it is how you undo a bad update: >
+
+    git checkout HEAD -- nvim-pack-lock.json
+    :restart
+    :lua vim.pack.update(nil, { offline = true, target = 'lockfile' })
+<
+Read and confirm that buffer as above.
+
+==============================================================================
+4. TREESITTER                                         *nvim-light-treesitter*
+
+nvim-treesitter is pinned to its `main` branch, which dropped the old
+`nvim-treesitter.configs` module. Parsers are installed imperatively, and
+highlighting and indenting are enabled per buffer from a `FileType` autocmd.
+
+The parser list lives in `ts_parsers` in 'init.lua' and is also exposed as
+`vim.g.ts_parsers` so the Docker build can install the same set headlessly.
+Missing parsers are installed asynchronously on startup; once they are all
+present this costs nothing.
+
+Neovim bundles parsers for `c`, `lua`, `markdown`, `query`, `vim`, and
+`vimdoc`, so those work even with no tree-sitter CLI installed. Every other
+parser needs the CLI, and will silently stay missing without it.
+
+To install one by hand: >
+
+    :lua require('nvim-treesitter').install({ 'python' })
+<
+==============================================================================
+5. KEYMAPS                                                *nvim-light-keymaps*
+
+<leader> is <Space>. This is a summary; 'init.lua' is authoritative, and
+which-key shows these interactively as you type.
+
+Pickers, all from snacks.nvim ~
+
+    <leader><Space>   smart find files          <leader>,    buffers
+    <leader>/         grep                      <leader>:    command history
+    <leader>e         file explorer             <leader>n    notifications
+
+    <leader>ff `fg` `fb` `fc` `fp` `fr`   files, git files, buffers, config
+                                          files, projects, recent
+    <leader>sf `sg` `sh` `sk` `sd` `sn`   files, grep, help, keymaps,
+                                          diagnostics, config files
+    <leader>ss                            treesitter symbols
+    <leader>sw                            grep word or selection (n, x)
+    <leader>sb `sB` `sl` `sq` `su`        buffer lines, grep buffers,
+                                          loclist, quickfix, undo history
+    <leader>s.  <leader>sR                recent files, resume last picker
+
+Git ~
+
+    <leader>gg   lazygit                  <leader>gs   status
+    <leader>gb   branches                 <leader>gl   log
+    <leader>gd   diff (hunks)             <leader>gB   browse (n, v)
+
+Buffers and windows ~
+
+    <S-h> <S-l>   previous/next buffer     `[b` `]b`   same
+    `[B` `]B`     move buffer left/right
+    <leader>bd    delete buffer            <leader>bD   delete buffer+window
+    <leader>bp    toggle pin               <leader>bP   close unpinned
+    <leader>bb    switch to other buffer   <leader>`    same
+    <leader>-     split below              <leader>|    split right
+    <leader>wd    close window             <C-h/j/k/l>  move between windows
+
+<C-h/j/k/l> also work from inside a terminal. The split and close mappings do
+not, because <leader> is <Space>: making it a mapping prefix in terminal mode
+would stall every space you type in the shell for 'timeoutlen'. Press
+`<C-\><C-n>` to leave terminal mode first, then use them as normal.
+
+Sessions, via persistence.nvim ~
+
+    <leader>qs   restore session for this directory
+    <leader>ql   restore last session
+    <leader>qS   pick a session
+    <leader>qd   stop saving the current session
+    <leader>qq   quit all
+
+Editing ~
+
+    `y` `p` `P` `gp` `gP`   yanky.nvim yank/put, with `[y` `]y` to cycle
+                            through the yank ring
+    <leader>p               yank history picker
+    `]p` `[p` `>p` `<p`     put with indent adjusted
+    `gsa` `gsd` `gsr`       mini.surround add/delete/replace
+    `gsf` `gsF` `gsh` `gsn` mini.surround find/highlight/update n_lines
+    `gc` `gcc`              toggle comment
+    `ai` `aa` `ii` `ia` ... mini.ai textobjects, e.g. `va)`, `ci'`, `yinq`
+    `[[` `]]`               previous/next reference under cursor
+
+Other ~
+
+    <leader>l `L`    update plugins, list plugins  (|nvim-light-updating|)
+    `gO`             outline of the current buffer, in help and in the
+                     |vim.pack| update buffer
+    <leader>z `Z`    zen mode, zoom
+    <leader>.        scratch buffer                <leader>S  pick scratch
+    <leader>cR       rename current file
+    <leader>un       dismiss notifications         <leader>uC  colorschemes
+    <C-/>            toggle terminal, from normal and terminal mode.
+                     `<C-_>` does the same, for terminals that send that
+                     instead.
+    <leader>xq       diagnostics to the loclist
+    <Esc>            clear search highlight
+    <Esc><Esc>       leave terminal mode
+
+==============================================================================
+6. ADDING A PLUGIN                              *nvim-light-adding-plugins*
+
+Two edits in 'init.lua'. Add the source to |vim.pack.add()|: >
+
+    gh 'folke/trouble.nvim',
+<
+The `gh()` helper just prepends `https://github.com/`. To pin a version, use a
+table instead of a string: >
+
+    { src = gh 'saghen/blink.cmp', version = vim.version.range '1.*' },
+    { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' },
+<
+`version` takes a |vim.version.range()|, or a branch, tag, or commit hash.
+Then configure it below, next to the other plugins: >
+
+    require('trouble').setup {}
+    vim.keymap.set('n', '<leader>xx', '<cmd>Trouble diagnostics<cr>')
+<
+Restart with `:restart`. The plugin is cloned during the |vim.pack.add()| call.
+
+Dependencies are not resolved for you: if a plugin needs another one, add it
+to the list yourself, above its dependent. Build steps are not part of the
+spec either. Use the `PackChanged` autocmd near the top of the plugin section,
+which is how nvim-treesitter's parsers get rebuilt after an update. See
+|vim.pack-events|.
+
+To remove a plugin, delete its lines and then delete it from disk: >
+
+    :lua vim.pack.del({ 'trouble.nvim' })
+<
+==============================================================================
+7. DOCKER                                                  *nvim-light-docker*
+
+A multi-arch image is built from 'Dockerfile' on every push to `main` and
+published to `ghcr.io/jazzxp/nvim-light`. It installs Neovim, the tree-sitter
+CLI, `git`, `rg`, `fd`, and `fzf`, then installs all plugins and treesitter
+parsers at build time so the container starts ready to use: >
+
+    docker run --rm -it -v .:/src ghcr.io/jazzxp/nvim-light nvim /src
+<
+ vim:tw=78:ts=8:ft=help:norl:
