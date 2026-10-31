@@ -31,6 +31,25 @@ vim.o.showmode = true
 --  See `:help 'clipboard'`
 vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
+  if vim.fn.has 'clipboard' == 0 then
+    local osc52 = require 'vim.ui.clipboard.osc52'
+
+    local function paste_from_register()
+      return { vim.fn.split(vim.fn.getreg '', '\n'), vim.fn.getregtype '' }
+    end
+
+    vim.g.clipboard = {
+      name = 'OSC 52',
+      copy = {
+        ['+'] = osc52.copy '+',
+        ['*'] = osc52.copy '*',
+      },
+      paste = {
+        ['+'] = paste_from_register,
+        ['*'] = paste_from_register,
+      },
+    }
+  end
 end)
 
 -- Enable break indent
