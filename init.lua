@@ -128,14 +128,18 @@ end
 pcall(vim.keymap.del, { 'n', 'x' }, 'gra')
 pcall(vim.keymap.del, { 'i', 's' }, '<C-S>')
 
+--  When REX_SESSION is set, rex-navigator is loaded (see the plugin list below)
+--  and these keys go through it. Otherwise they fall back to plain window motions.
+local use_rex = (vim.env.REX_SESSION or '') ~= ''
+vim.g.use_rex = use_rex
+
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
---
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<C-h>', use_rex and '<Plug>(RexNavigateLeft)' or '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', use_rex and '<Plug>(RexNavigateRight)' or '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', use_rex and '<Plug>(RexNavigateDown)' or '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', use_rex and '<Plug>(RexNavigateUp)' or '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- Same from inside a terminal. `<C-\><C-n>` leaves terminal mode first.
 -- NOTE: this takes <C-h> away from the shell, where it is a backspace.
@@ -238,6 +242,12 @@ vim.pack.add({
 
   gh 'akinsho/bufferline.nvim',
 }, { confirm = false })
+
+-- Only installed/loaded inside a rex session (`REX_SESSION` set and non-empty).
+-- The <C-hjkl> mappings that use it are chosen near the top of this file.
+if use_rex then
+  vim.pack.add({ gh 'baggiponte/rex-navigator.nvim' }, { confirm = false })
+end
 
 -- [[ Plugin configuration ]]
 -- With `vim.pack` there is no lazy-loading layer: every plugin is on the

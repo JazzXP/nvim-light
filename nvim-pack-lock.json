@@ -34,6 +34,10 @@
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
+    "rex-navigator.nvim": {
+      "rev": "09c8da1c2696bdabbf37a773fbe8ee8779c9b8c1",
+      "src": "https://github.com/baggiponte/rex-navigator.nvim"
+    },
     "snacks.nvim": {
       "rev": "882c996cf28183f4d63640de0b4c02ec886d01f2",
       "src": "https://github.com/folke/snacks.nvim"
